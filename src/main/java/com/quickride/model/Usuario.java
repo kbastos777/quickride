@@ -12,24 +12,17 @@ public class Usuario {
 
     private String nombre;
     private String email;
+    private String password;
 
     @OneToMany(mappedBy = "usuario")
     private List<Viaje> viajes;
 
-    public List<Viaje> getViajes() {
-        return viajes;
+    public Long getId() {
+        return id;
     }
 
-    public void setViajes(List<Viaje> viajes) {
-        this.viajes = viajes;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
+    public void setId(Long id) {
+        this.id = id;
     }
 
     public String getNombre() {
@@ -40,11 +33,27 @@ public class Usuario {
         this.nombre = nombre;
     }
 
-    public Long getId() {
-        return id;
+    public String getEmail() {
+        return email;
     }
 
-    public void setId(Long id) {
-        this.id = id;
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
+    public List<Viaje> getViajes() {
+        return viajes;
+    }
+
+    public void setViajes(List<Viaje> viajes) {
+        this.viajes = viajes;
     }
 }
