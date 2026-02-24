@@ -24,7 +24,8 @@ public class ViajeController {
     }
 
     @GetMapping("/usuario/{id}")
-    public List<Viaje> historial(@PathVariable Long id) {
+    public List<ViajeResponseDTO> historial(@PathVariable Long id) {
         return viajeService.historialUsuario(id);
     }
+
 }

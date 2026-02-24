@@ -62,9 +62,22 @@ public class ViajeService {
         );
     }
 
-    public List<Viaje> historialUsuario(Long usuarioId) {
-        return viajeRepository.findByUsuarioId(usuarioId);
+    public List<ViajeResponseDTO> historialUsuario(Long usuarioId) {
+
+        return viajeRepository.findByUsuarioId(usuarioId)
+                .stream()
+                .map(viaje -> new ViajeResponseDTO(
+                        viaje.getId(),
+                        viaje.getOrigen(),
+                        viaje.getDestino(),
+                        viaje.getTarifa(),
+                        viaje.getConductor().getNombre(),
+                        viaje.getEstado(),
+                        viaje.getFechaSolicitud()
+                ))
+                .toList();
     }
+
 
     private double calcularTarifa(double distanciaKm) {
         double tarifaBase = 2.5;
