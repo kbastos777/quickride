@@ -1,57 +1,74 @@
 package com.quickride.service;
 
+import com.quickride.dto.ViajeRequestDTO;
+import com.quickride.dto.ViajeResponseDTO;
+import com.quickride.model.Conductor;
 import com.quickride.model.EstadoViaje;
+import com.quickride.model.Usuario;
 import com.quickride.model.Viaje;
+import com.quickride.repository.ConductorRepository;
+import com.quickride.repository.UsuarioRepository;
 import com.quickride.repository.ViajeRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Random;
 
 @Service
 public class ViajeService {
 
     private final ViajeRepository viajeRepository;
+    private final UsuarioRepository usuarioRepository;
+    private final ConductorRepository conductorRepository;
 
-    public ViajeService(ViajeRepository viajeRepository) {
+    public ViajeService(ViajeRepository viajeRepository,
+                        UsuarioRepository usuarioRepository,
+                        ConductorRepository conductorRepository) {
         this.viajeRepository = viajeRepository;
+        this.usuarioRepository = usuarioRepository;
+        this.conductorRepository = conductorRepository;
     }
 
-    // Crear viaje
-    public Viaje crearViaje(Viaje viaje) {
-        double tarifa = calcularTarifa(viaje.getDistanciaKm());
+    public ViajeResponseDTO crearViaje(ViajeRequestDTO dto) {
+
+        Usuario usuario = usuarioRepository.findById(dto.getUsuarioId())
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+
+        Conductor conductor = conductorRepository.findFirstByDisponibleTrue()
+                .orElseThrow(() -> new RuntimeException("No hay conductores disponibles"));
+
+        conductor.setDisponible(false);
+
+        Viaje viaje = new Viaje();
+        viaje.setOrigen(dto.getOrigen());
+        viaje.setDestino(dto.getDestino());
+        viaje.setDistanciaKm(dto.getDistanciaKm());
+        viaje.setUsuario(usuario);
+        viaje.setConductor(conductor);
+
+        double tarifa = calcularTarifa(dto.getDistanciaKm());
         viaje.setTarifa(tarifa);
-
-        asignarConductor(viaje);
-
-        return viajeRepository.save(viaje);
-    }
-
-    // Lógica de tarifa
-    private double calcularTarifa(double distanciaKm) {
-
-        double tarifaBase = 2.50;
-        double precioPorKm = 1.20;
-
-        return tarifaBase + (distanciaKm * precioPorKm);
-    }
-
-    // Asignación automática de conductor
-    private void asignarConductor(Viaje viaje) {
-
-        List<String> conductoresDisponibles = List.of(
-                "Carlos",
-                "María",
-                "José",
-                "Andrea"
-        );
-
-        Random random = new Random();
-        String conductor = conductoresDisponibles.get(
-                random.nextInt(conductoresDisponibles.size())
-        );
-
-        viaje.setConductorAsignado(conductor);
         viaje.setEstado(EstadoViaje.CONDUCTOR_ASIGNADO);
+
+        viajeRepository.save(viaje);
+
+        return new ViajeResponseDTO(
+                viaje.getId(),
+                viaje.getOrigen(),
+                viaje.getDestino(),
+                viaje.getTarifa(),
+                conductor.getNombre(),
+                viaje.getEstado(),
+                viaje.getFechaSolicitud()
+        );
+    }
+
+    public List<Viaje> historialUsuario(Long usuarioId) {
+        return viajeRepository.findByUsuarioId(usuarioId);
+    }
+
+    private double calcularTarifa(double distanciaKm) {
+        double tarifaBase = 2.5;
+        double precioPorKm = 1.2;
+        return tarifaBase + (distanciaKm * precioPorKm);
     }
 }
